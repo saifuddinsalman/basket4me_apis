@@ -1,0 +1,188 @@
+{
+ "actions": [],
+ "allow_copy": 1,
+ "creation": "2025-04-12 03:41:42.753967",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "basic_details_section",
+  "server_url",
+  "column_break_xlqg",
+  "api_key",
+  "column_break_uxpn",
+  "store_code",
+  "sales_orders_api_details_section",
+  "sales_order_api_path",
+  "column_break_czaa",
+  "sales_order_access_date",
+  "column_break_pbql",
+  "sales_order_last_called",
+  "sales_invoice_api_details_section",
+  "sales_invoice_api_path",
+  "column_break_vgcc",
+  "sales_invoice_access_date",
+  "column_break_srcv",
+  "sales_invoice_last_called",
+  "receipts_api_details_section",
+  "receipts_api_path",
+  "column_break_wlpe",
+  "receipts_access_date",
+  "column_break_rkoy",
+  "receipts_last_called"
+ ],
+ "fields": [
+  {
+   "fieldname": "server_url",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Server URL",
+   "reqd": 1
+  },
+  {
+   "fieldname": "api_key",
+   "fieldtype": "Data",
+   "label": "API Key",
+   "reqd": 1
+  },
+  {
+   "fieldname": "store_code",
+   "fieldtype": "Data",
+   "label": "Store Code",
+   "reqd": 1
+  },
+  {
+   "fieldname": "basic_details_section",
+   "fieldtype": "Section Break",
+   "label": "Basic Details"
+  },
+  {
+   "fieldname": "column_break_xlqg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_uxpn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sales_orders_api_details_section",
+   "fieldtype": "Section Break",
+   "label": "Sales Orders API Details"
+  },
+  {
+   "default": "/api/businesserp/salesOrders",
+   "fieldname": "sales_order_api_path",
+   "fieldtype": "Data",
+   "label": "Sales Order API Path"
+  },
+  {
+   "fieldname": "column_break_pbql",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Today",
+   "description": "For Manual Call Only",
+   "fieldname": "sales_order_access_date",
+   "fieldtype": "Date",
+   "label": "Sales Order Access Date"
+  },
+  {
+   "fieldname": "sales_invoice_api_details_section",
+   "fieldtype": "Section Break",
+   "label": "Sales Invoice API Details"
+  },
+  {
+   "fieldname": "column_break_vgcc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "/api/businesserp/salesInvoices",
+   "fieldname": "sales_invoice_api_path",
+   "fieldtype": "Data",
+   "label": "Sales Invoice API Path"
+  },
+  {
+   "default": "Today",
+   "description": "For Manual Call Only",
+   "fieldname": "sales_invoice_access_date",
+   "fieldtype": "Date",
+   "label": "Sales Invoice Access Date"
+  },
+  {
+   "fieldname": "receipts_api_details_section",
+   "fieldtype": "Section Break",
+   "label": "Receipts API Details"
+  },
+  {
+   "default": "/api/businesserp/receipts",
+   "fieldname": "receipts_api_path",
+   "fieldtype": "Data",
+   "label": "Receipts API Path"
+  },
+  {
+   "fieldname": "column_break_wlpe",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Today",
+   "description": "For Manual Call Only",
+   "fieldname": "receipts_access_date",
+   "fieldtype": "Date",
+   "label": "Receipts Access Date"
+  },
+  {
+   "fieldname": "sales_order_last_called",
+   "fieldtype": "Datetime",
+   "label": "Sales Order Last Called",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_czaa",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_srcv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sales_invoice_last_called",
+   "fieldtype": "Datetime",
+   "label": "Sales Invoice Last Called",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_rkoy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "receipts_last_called",
+   "fieldtype": "Datetime",
+   "label": "Receipts Last Called",
+   "read_only": 1
+  }
+ ],
+ "hide_toolbar": 1,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "make_attachments_public": 1,
+ "modified": "2025-04-16 05:06:06.651427",
+ "modified_by": "Administrator",
+ "module": "Basket4Me APIs",
+ "name": "Basket4Me APIs Integration Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

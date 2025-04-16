@@ -40,3 +40,4 @@ def get_stock_balance(item=None, warehouse=None):
             "qty": warehouses_wise_data,
         })
     frappe.local.response["data"] = data
+
