@@ -32,8 +32,8 @@ def get_n_make_payment_entries(url, headers, params, page):
 
 def make_payment_entry(api_data):
     try:
-        validate_mode_of_payment(api_data["paymentType"])
-        validate_customer(api_data["customerId"])
+        validate_mode_of_payment(api_data["paymentType"], "Payment Entry", api_data["tranRefNo"])
+        validate_customer(api_data["customerId"], api_data, "Payment Entry", api_data["tranRefNo"])
         defaults = get_defaults()
         date = get_datetime(api_data["tranDate"]).date()
         cus_det = get_customer_details(defaults.company, cstr(api_data["customerId"]).strip(), date)
@@ -42,6 +42,7 @@ def make_payment_entry(api_data):
         pe.company = defaults.company
         pe.payment_type = "Receive"
         pe.party_type = "Customer"
+        pe.custom_basket4me_user = api_data["userName"]
         pe.custom_tranrefno = api_data["tranRefNo"]
         pe.mode_of_payment = api_data["paymentType"]
         pe.party = cstr(api_data["customerId"]).strip()

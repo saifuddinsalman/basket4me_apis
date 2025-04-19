@@ -7,13 +7,14 @@ from basket4me_apis.b4me_to_erp_apis.common_methods import validate_customer, va
 def make_sales_order(api_data):
     try:
         products = json.loads(api_data["products"])
-        validate_customer(api_data["customerId"])
+        validate_customer(api_data["customerId"], api_data, "Sales Order", api_data["tranRefNo"])
         defaults = get_defaults()
         so = frappe.new_doc("Sales Order")
         so.company = defaults.company
         so.customer = cstr(api_data["customerId"]).strip()
         so.title = api_data["tranRefNo"]
         so.custom_tranrefno = api_data["tranRefNo"]
+        so.custom_basket4me_user = api_data["userName"]
         so.transaction_date = get_datetime(api_data["tranDate"]).date()
         so.delivery_date = get_datetime(api_data["deliveryDate"]).date()
         so.po_no = api_data["tranRefNo"]
@@ -21,8 +22,8 @@ def make_sales_order(api_data):
         so.remarks = api_data.get("remarks", "")
         so.items = []
         for item in products:
-            validate_item(item["productCode"], item["prodName"])
-            validate_uom(item["unit"])
+            validate_item(item["productCode"], item["prodName"], "Sales Order", api_data["tranRefNo"])
+            validate_uom(item["unit"], "Sales Order", api_data["tranRefNo"])
             so.append("items", {
                 "item_code": item["productCode"],
                 "item_name": item["prodName"],

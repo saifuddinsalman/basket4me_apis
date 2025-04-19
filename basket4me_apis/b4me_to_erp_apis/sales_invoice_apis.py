@@ -7,11 +7,12 @@ from basket4me_apis.b4me_to_erp_apis.common_methods import validate_customer, va
 def make_sales_invoice(api_data):
     try:
         products = json.loads(api_data["products"])
-        validate_customer(api_data["customerId"])
+        validate_customer(api_data["customerId"], api_data, "Sales Invoice", api_data["tranRefNo"])
         defaults = get_defaults()
         si = frappe.new_doc("Sales Invoice")
         si.company = defaults.company
         si.custom_tranrefno = api_data["tranRefNo"]
+        si.custom_basket4me_user = api_data["userName"]
         si.title = api_data["tranRefNo"]
         si.posting_date = get_datetime(api_data["tranDate"]).date()
         si.due_date = get_datetime(api_data["tranDate"]).date()
@@ -21,8 +22,8 @@ def make_sales_invoice(api_data):
         si.po_date = get_datetime(api_data["tranDate"]).date()
         si.items = []
         for item in products:
-            validate_item(item["productCode"], item["prodName"])
-            validate_uom(item["unit"])
+            validate_item(item["productCode"], item["prodName"], "Sales Invoice", api_data["tranRefNo"])
+            validate_uom(item["unit"], "Sales Invoice", api_data["tranRefNo"])
             si.append("items", {
                 "item_code": item["productCode"],
                 "item_name": item["prodName"],

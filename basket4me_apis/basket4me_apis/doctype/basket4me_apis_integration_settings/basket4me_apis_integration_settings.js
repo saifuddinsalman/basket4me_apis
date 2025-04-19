@@ -6,9 +6,18 @@ frappe.ui.form.on("Basket4Me APIs Integration Settings", {
         add_btn_to_get_records(frm, 'Sales Order')
         add_btn_to_get_records(frm, 'Sales Invoice')
         add_btn_to_get_records(frm, 'Receipt')
+        add_btn_to_show_logs_records(frm, 'Sales Order')
+        add_btn_to_show_logs_records(frm, 'Sales Invoice')
+        add_btn_to_show_logs_records(frm, 'Payment Entry')
 	},
 });
 
+function add_btn_to_show_logs_records(frm, doc_type) {
+    frm.add_custom_button(doc_type, () => {
+        frappe.route_options = {"method": ["like", `%Basket4Me APIs Integration: ${doc_type}%`]}
+        frappe.set_route('List', 'Error Log', 'List')
+    }, "Error Logs")
+}
 function add_btn_to_get_records(frm, doc_type) {
     let doc_wise_vars = {
         "Sales Order": {"doc":"Sales Order", "path": "sales_order_api_path", "date": "sales_order_access_date"},
