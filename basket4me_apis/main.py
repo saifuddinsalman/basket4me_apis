@@ -51,6 +51,33 @@ def update_b4me_api_last_called(doctype):
     frappe.db.commit()
 
 @frappe.whitelist()
+def make_payments_entry_api_call_background_job():
+    frappe.enqueue(
+        make_api_call,
+        queue="long",
+        timeout=5000,
+        doctype="Payment Entry", date=getdate(),
+    )
+
+@frappe.whitelist()
+def make_sales_order_api_call_background_job():
+    frappe.enqueue(
+        make_api_call,
+        queue="long",
+        timeout=5000,
+        doctype="Sales Order", date=getdate(),
+    )
+
+@frappe.whitelist()
+def make_sales_invoice_api_call_background_job():
+    frappe.enqueue(
+        make_api_call,
+        queue="long",
+        timeout=5000,
+        doctype="Sales Invoice", date=getdate(),
+    )
+
+@frappe.whitelist()
 def make_api_call_background_job(doctype, date):
     frappe.enqueue(
         make_api_call,

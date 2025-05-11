@@ -148,7 +148,15 @@ app_license = "mit"
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
+scheduler_events = {
+    "cron": {
+		"*/30 * * * *": [
+            "basket4me_apis.main.make_sales_invoice_api_call_background_job",
+            "basket4me_apis.main.make_sales_order_api_call_background_job",
+            "basket4me_apis.main.make_payments_entry_api_call_background_job",
+        ]
+	}
+
 # 	"all": [
 # 		"basket4me_apis.tasks.all"
 # 	],
@@ -164,7 +172,7 @@ app_license = "mit"
 # 	"monthly": [
 # 		"basket4me_apis.tasks.monthly"
 # 	],
-# }
+}
 
 # Testing
 # -------
