@@ -22,7 +22,8 @@ def get_n_make_payment_entries(url, headers, params, page):
             total_count = response.json().get("totalCount", 0) or 0
             data = response.json().get("data", [])
             for order in data:
-                make_payment_entry(order)
+                if not frappe.db.get_value("Payment Entry", {"custom_tranrefno":order["tranRefNo"]}, "name"):
+                    make_payment_entry(order)
         else:
             frappe.throw(f"Error fetching payment entries: {response.status_code} - {response.text}")
     except Exception as e:

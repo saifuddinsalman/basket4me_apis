@@ -90,7 +90,7 @@
   "length": 0,
   "link_filters": null,
   "mandatory_depends_on": null,
-  "modified": "2025-04-19 22:50:19.438302",
+  "modified": "2025-05-11 22:30:46.805530",
   "module": "Basket4Me APIs",
   "name": "Payment Entry-custom_basket4me_user",
   "no_copy": 0,
@@ -110,7 +110,7 @@
   "show_dashboard": 0,
   "sort_options": 0,
   "translatable": 0,
-  "unique": 1,
+  "unique": 0,
   "width": null
  },
  {
@@ -204,7 +204,7 @@
   "length": 0,
   "link_filters": null,
   "mandatory_depends_on": null,
-  "modified": "2025-04-19 22:50:19.987489",
+  "modified": "2025-05-11 22:30:42.197779",
   "module": "Basket4Me APIs",
   "name": "Sales Order-custom_basket4me_user",
   "no_copy": 0,
@@ -224,7 +224,7 @@
   "show_dashboard": 0,
   "sort_options": 0,
   "translatable": 0,
-  "unique": 1,
+  "unique": 0,
   "width": null
  },
  {
@@ -318,7 +318,7 @@
   "length": 0,
   "link_filters": null,
   "mandatory_depends_on": null,
-  "modified": "2025-04-19 22:50:20.317925",
+  "modified": "2025-05-11 22:30:37.087211",
   "module": "Basket4Me APIs",
   "name": "Sales Invoice-custom_basket4me_user",
   "no_copy": 0,
@@ -338,7 +338,7 @@
   "show_dashboard": 0,
   "sort_options": 0,
   "translatable": 0,
-  "unique": 1,
+  "unique": 0,
   "width": null
  }
 ]

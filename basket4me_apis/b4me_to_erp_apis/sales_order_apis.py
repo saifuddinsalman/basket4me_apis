@@ -53,7 +53,8 @@ def get_n_make_sales_orders(url, headers, params, page):
             total_count = response.json().get("totalCount", 0) or 0
             data = response.json().get("data", [])
             for order in data:
-                make_sales_order(order)
+                if not frappe.db.get_value("Sales Order", {"custom_tranrefno":order["tranRefNo"]}, "name"):
+                    make_sales_order(order)
         else:
             frappe.throw(f"Error fetching sales orders: {response.status_code} - {response.text}")
     except Exception as e:

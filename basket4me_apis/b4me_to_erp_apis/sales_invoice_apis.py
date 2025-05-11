@@ -53,7 +53,8 @@ def get_n_make_sales_invoices(url, headers, params, page):
             total_count = response.json().get("totalCount", 0) or 0
             data = response.json().get("data", [])
             for invoice in data:
-                make_sales_invoice(invoice)
+                if not frappe.db.get_value("Sales Invoice", {"custom_tranrefno":invoice["tranRefNo"]}, "name"):
+                    make_sales_invoice(invoice)
         else:
             frappe.throw(f"Error fetching sales invoices: {response.status_code} - {response.text}")
     except Exception as e:
