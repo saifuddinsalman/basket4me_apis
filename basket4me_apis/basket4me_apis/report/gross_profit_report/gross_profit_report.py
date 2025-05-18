@@ -41,6 +41,10 @@ def execute(filters=None):
 				"qty",
 				"base_rate",
 				"buying_rate",
+				"sales_rate",
+				"purchase_rate",
+				"profit_percentage",
+				"profit_margin",
 				"base_amount",
 				"buying_amount",
 				"gross_profit",
@@ -188,10 +192,17 @@ def get_data_when_grouped_by_invoice(columns, gross_profit_data, filters, group_
 		row.indent = src.indent
 		row.parent_invoice = src.parent_invoice
 		row.currency = filters.currency
-
 		for col in group_wise_columns.get(scrub(filters.group_by)):
 			row[column_names[col]] = src.get(col)
-
+		if "purchase_rate" in group_wise_columns.get(scrub(filters.group_by)):
+			row["purchase_rate"] = get_last_purchase_rate_custom(filters, row.item_code, row)
+		if "sales_rate" in group_wise_columns.get(scrub(filters.group_by)):
+			row["sales_rate"] = flt(row.get("avg._selling_rate"))
+		if "profit_percentage" in group_wise_columns.get(scrub(filters.group_by)):
+			if row.get("sales_rate") and row.get("purchase_rate"):
+				row["profit_percentage"] = ((flt(row.get("sales_rate"))-flt(row.get("purchase_rate")))/flt(row.get("sales_rate")))*100
+		if "profit_margin" in group_wise_columns.get(scrub(filters.group_by)):
+			row["profit_margin"] = (flt(row.get("sales_rate"))*flt(row.get("qty"))) - (flt(row.get("purchase_rate"))*flt(row.get("qty")))
 		data.append(row)
 
 	total_gross_profit = total_base_amount - total_buying_amount
@@ -351,6 +362,34 @@ def get_columns(group_wise_columns, filters):
 				"fieldtype": "Percent",
 				"width": 100,
 			},
+			"sales_rate": {
+				"label": _("Sales Rate"),
+				"fieldname": "sales_rate",
+				"fieldtype": "Currency",
+				"options": "currency",
+				"width": 100,
+			},
+			"purchase_rate": {
+				"label": _("Purchase Rate"),
+				"fieldname": "purchase_rate",
+				"fieldtype": "Currency",
+				"options": "currency",
+				"width": 100,
+			},
+			"profit_percentage": {
+				"label": _("Profit Percentage"),
+				"fieldname": "profit_percentage",
+				"fieldtype": "Percent",
+				# "options": "currency",
+				"width": 100,
+			},
+			"profit_margin": {
+				"label": _("Profit Margin"),
+				"fieldname": "profit_margin",
+				"fieldtype": "Percent",
+				# "options": "currency",
+				"width": 100,
+			},
 			"project": {
 				"label": _("Project"),
 				"fieldname": "project",
@@ -453,6 +492,10 @@ def get_column_names():
 			"gross_profit": "gross_profit",
 			"gross_profit_percent": "gross_profit_%",
 			"project": "project",
+			"sales_rate": "sales_rate",
+			"purchase_rate": "purchase_rate",
+			"profit_percentage": "profit_percentage",
+			"profit_margin": "profit_margin",
 		}
 	)
 
@@ -760,7 +803,6 @@ class GrossProfitGenerator:
 			.where(delivery_note_item.so_detail == so_detail)
 			.groupby(delivery_note_item.item_code)
 		)
-
 		incoming_amount = query.run()
 		return flt(incoming_amount[0][0]) if incoming_amount else 0
 
@@ -809,10 +851,8 @@ class GrossProfitGenerator:
 
 		if row.cost_center:
 			query = query.where(purchase_invoice_item.cost_center == row.cost_center)
-
 		query = query.orderby(purchase_invoice.posting_date, order=frappe.qb.desc).limit(1)
 		last_purchase_rate = query.run()
-
 		return flt(last_purchase_rate[0][0]) if last_purchase_rate else 0
 
 	def load_invoice_items(self):
@@ -1014,6 +1054,10 @@ class GrossProfitGenerator:
 				"is_return": row.is_return,
 				"cost_center": row.cost_center,
 				"base_net_amount": row.invoice_base_net_total,
+				# "sales_rate": None,
+				# "purchase_rate": None,
+				# "profit_percentage": None,
+				# "profit_margin": None,
 			}
 		)
 
@@ -1111,3 +1155,30 @@ class GrossProfitGenerator:
 			"""select name from tabItem
 			where is_stock_item=0"""
 		)
+
+def get_last_purchase_rate_custom(filters, item_code, row):
+	purchase_invoice = frappe.qb.DocType("Purchase Invoice")
+	purchase_invoice_item = frappe.qb.DocType("Purchase Invoice Item")
+
+	query = (
+		frappe.qb.from_(purchase_invoice_item)
+		.inner_join(purchase_invoice)
+		.on(purchase_invoice.name == purchase_invoice_item.parent)
+		.select(
+			purchase_invoice_item.base_rate / purchase_invoice_item.conversion_factor,
+		)
+		.where(purchase_invoice.docstatus != 2)
+		.where(purchase_invoice.posting_date <= filters.to_date)
+		.where(purchase_invoice_item.item_code == item_code)
+		.where(purchase_invoice.is_return == 0)
+		.where(purchase_invoice_item.parenttype == "Purchase Invoice")
+	)
+
+	if row.project:
+		query = query.where(purchase_invoice_item.project == row.project)
+
+	if row.cost_center:
+		query = query.where(purchase_invoice_item.cost_center == row.cost_center)
+	query = query.orderby(purchase_invoice.posting_date, order=frappe.qb.desc).limit(1)
+	last_purchase_rate = query.run()
+	return flt(last_purchase_rate[0][0]) if last_purchase_rate else 0
