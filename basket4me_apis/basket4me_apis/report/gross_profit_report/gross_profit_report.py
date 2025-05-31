@@ -438,7 +438,7 @@ def get_columns(group_wise_columns, filters):
 			"profit_margin": {
 				"label": _("Profit Margin"),
 				"fieldname": "profit_margin",
-				# "fieldtype": "Percent",
+				"fieldtype": "Currency",
 				"options": "currency",
 				"width": 100,
 			},
