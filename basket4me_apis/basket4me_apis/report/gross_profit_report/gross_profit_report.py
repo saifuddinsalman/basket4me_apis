@@ -199,6 +199,8 @@ def get_data_when_grouped_by_invoice(columns, gross_profit_data, filters, group_
 		row["base_amount"] = (flt(row.get("sales_rate"))*flt(row.get("qty")))
 		if "profit_margin" in current_cols:
 			row["profit_margin"] = flt(row.get("base_amount")) - (flt(row.get("purchase_rate"))*flt(row.get("qty")))
+		if "gross_profit" in current_cols and "profit_percentage" in current_cols:
+			row["gross_profit"] = flt(row.get("base_amount")) * (flt(row.get("profit_percentage"))/100)
 		data.append(row)
 	data = custom_process_grouped_invoiced_data(data)
 	total_base_amount = 0
