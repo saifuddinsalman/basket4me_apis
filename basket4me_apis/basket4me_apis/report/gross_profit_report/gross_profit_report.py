@@ -190,6 +190,8 @@ def get_data_when_grouped_by_invoice(columns, gross_profit_data, filters, group_
 			row[column_names[col]] = src.get(col)
 		if "purchase_rate" in current_cols:
 			row["purchase_rate"] = get_last_purchase_rate_custom(filters, row.item_code, row)
+			if not row.get("purchase_rate"):
+				row["purchase_rate"] = row.get("buying_rate")
 		if "sales_rate" in current_cols:
 			row["sales_rate"] = flt(row.get("avg._selling_rate"))
 		if "profit_percentage" in current_cols:
