@@ -188,34 +188,30 @@ def get_data_when_grouped_by_invoice(columns, gross_profit_data, filters, group_
 		current_cols = group_wise_columns.get(scrub(filters.group_by))
 		for col in current_cols:
 			row[column_names[col]] = src.get(col)
-		if "purchase_rate" in current_cols:
-			row["purchase_rate"] = get_last_purchase_rate_custom(filters, row.item_code, row)
-			if not row.get("purchase_rate"):
-				row["purchase_rate"] = row.get("buying_rate")
-		if "sales_rate" in current_cols:
-			row["sales_rate"] = flt(row.get("avg._selling_rate"))
-		if "profit_percentage" in current_cols:
-			row["profit_percentage"] = 0
-			if row.get("sales_rate") and row.get("purchase_rate"):
-				row["profit_percentage"] = 100-(flt(row.get("purchase_rate")/(flt(row.get("sales_rate"))/100)))
-		row["base_amount"] = (flt(row.get("sales_rate"))*flt(row.get("qty")))
-		if "profit_margin" in current_cols:
-			row["profit_margin"] = flt(row.get("base_amount")) - (flt(row.get("purchase_rate"))*flt(row.get("qty")))
-		if "gross_profit" in current_cols and "profit_percentage" in current_cols:
-			row["gross_profit"] = flt(row.get("base_amount")) * (flt(row.get("profit_percentage"))/100)
 		data.append(row)
-	data = custom_process_grouped_invoiced_data(data)
-	total_base_amount = 0
-	total_buying_amount = 0
+	data = custom_process_grouped_invoiced_data(data, current_cols, filters)
+	total_profit_margin = total_profit_percentage = total_gross_profit = total_purchase_rate = total_sales_rate = total_base_amount = total_buying_amount = total_qty = count = 0
 	for d in data:
-		if d.indent == 1:
+		if d.indent == 0:
+			count += 1
 			total_base_amount += d.base_amount or 0.0
 			total_buying_amount += d.buying_amount or 0.0
-	total_gross_profit = total_base_amount - total_buying_amount
+			total_gross_profit += d.gross_profit or 0.0
+			total_profit_percentage += d.profit_percentage or 0.0
+			total_profit_margin += d.profit_margin or 0.0
+			total_qty += d.qty or 0.0
+			total_sales_rate += d.sales_rate or 0.0
+			total_purchase_rate += d.purchase_rate or 0.0
+	float_precision = cint(frappe.db.get_default("float_precision")) or 2
 	total_row = frappe._dict(
 		{
-			"sales_invoice": "Total",
-			"qty": None,
+			"indent": 0,
+			"sales_invoice": "Totals",
+			"qty": total_qty,
+			"sales_rate": flt(total_sales_rate / count, float_precision),
+			"purchase_rate": flt(total_purchase_rate / count, float_precision),
+			"profit_percentage": flt(total_profit_percentage / count, float_precision),
+			"profit_margin": total_profit_margin,
 			"avg._selling_rate": None,
 			"valuation_rate": None,
 			"selling_amount": total_base_amount,
@@ -229,10 +225,11 @@ def get_data_when_grouped_by_invoice(columns, gross_profit_data, filters, group_
 			else 0,
 		}
 	)
-	return data + [total_row]
+	data.append(total_row)
+	return data
 
 
-def custom_process_grouped_invoiced_data(data):
+def custom_process_grouped_invoiced_data(data, current_cols, filters):
 	# currency_precision = cint(frappe.db.get_default("currency_precision")) or 3
 	float_precision = cint(frappe.db.get_default("float_precision")) or 2
 	buying_amount = 0
@@ -241,9 +238,28 @@ def custom_process_grouped_invoiced_data(data):
 	purchase_rate = 0
 	profit_percentage = 0
 	profit_margin = 0
+	gross_profit = 0
 	qty = 0
 	count = 0
 	for row in reversed(data):
+		if flt(row.qty):
+			row.buying_rate = flt(flt(row.buying_amount) / flt(row.qty), float_precision)
+			row.base_rate = flt(flt(row.base_amount) / flt(row.qty), float_precision)
+		if "purchase_rate" in current_cols:
+			row["purchase_rate"] = get_last_purchase_rate_custom(filters, row.item_code, row)
+			if not flt(row.get("purchase_rate")):
+				row["purchase_rate"] = row.get("buying_rate")
+		if "sales_rate" in current_cols:
+			row["sales_rate"] = flt(row.get("avg._selling_rate"))
+		if "profit_percentage" in current_cols:
+			row["profit_percentage"] = 0
+			if row.get("sales_rate") and row.get("purchase_rate"):
+				row["profit_percentage"] = 100-(flt(row.get("purchase_rate")/(flt(row.get("sales_rate"))/100)))
+		row["base_amount"] = (flt(row.get("sales_rate"))*flt(row.get("qty")))
+		if "profit_margin" in current_cols:
+			row["profit_margin"] = flt(row.get("base_amount")) - (flt(row.get("purchase_rate"))*flt(row.get("qty")))
+		if "gross_profit" in current_cols and "profit_percentage" in current_cols:
+			row["gross_profit"] = flt(row.get("base_amount")) * (flt(row.get("profit_percentage"))/100)
 		if row.indent == 0.0:
 			if count:
 				row.sales_rate = flt(sales_rate / count, float_precision)
@@ -253,11 +269,10 @@ def custom_process_grouped_invoiced_data(data):
 				row.sales_rate = 0
 				row.purchase_rate = 0
 				row.profit_percentage = 0
-
-
 			row.buying_amount = buying_amount
 			row.base_amount = base_amount
 			row.profit_margin = profit_margin
+			row.gross_profit = gross_profit
 			row.qty = qty
 			sales_rate = 0
 			purchase_rate = 0
@@ -265,22 +280,20 @@ def custom_process_grouped_invoiced_data(data):
 			base_amount = 0
 			profit_percentage = 0
 			profit_margin = 0
+			gross_profit = 0
 			qty = 0
 			count = 0
-
 		if row.indent == 1.0:
 			buying_amount += flt(row.buying_amount)
 			base_amount += flt(row.base_amount)
 			profit_margin += flt(row.profit_margin)
+			profit_margin += flt(row.profit_margin)
 			sales_rate += flt(row.sales_rate)
 			purchase_rate += flt(row.purchase_rate)
 			profit_percentage += flt(row.profit_percentage)
+			gross_profit += flt(row.gross_profit)
 			qty += row.qty
 			count += 1
-
-		if flt(row.qty):
-			row.buying_rate = flt(row.buying_amount / flt(row.qty), float_precision)
-			row.base_rate = flt(row.base_amount / flt(row.qty), float_precision)
 	return data
 
 def get_data_when_not_grouped_by_invoice(gross_profit_data, filters, group_wise_columns, data):
