@@ -14,6 +14,36 @@ from erpnext.accounts.report.financial_statements import get_cost_centers_with_c
 from erpnext.controllers.queries import get_match_cond
 from erpnext.stock.report.stock_ledger.stock_ledger import get_item_group_condition
 from erpnext.stock.utils import get_incoming_rate
+from frappe.query_builder.functions import IfNull
+
+def get_buying_item_price(item_code, args={}):
+	args = frappe._dict(args)
+	ip = frappe.qb.DocType("Item Price")
+	query = (
+		frappe.qb.from_(ip)
+		.select(ip.price_list_rate)
+		.where(
+			(ip.item_code == item_code)
+			& (ip.price_list == "Standard Buying")
+			& (ip.buying == 1)
+		)
+		.orderby(ip.valid_from, order=frappe.qb.desc)
+		.orderby(ip.uom, order=frappe.qb.desc)
+		.limit(1)
+	)
+	if args.uom:
+		query = query.where(IfNull(ip.uom, "").isin(["", args.uom]))
+	if args.supplier:
+		query = query.where(IfNull(ip.supplier, "").isin(["", args.supplier]))
+	if args.date:
+		query = query.where(
+			(IfNull(ip.valid_from, "2000-01-01") <= args.date)
+			& (IfNull(ip.valid_upto, "2500-12-31") >= args.date)
+		)
+	data = query.run()
+	rate = 0
+	if data: rate = flt(data[0][0])
+	return rate
 
 
 def execute(filters=None):
@@ -245,21 +275,6 @@ def custom_process_grouped_invoiced_data(data, current_cols, filters):
 		if flt(row.qty):
 			row.buying_rate = flt(flt(row.buying_amount) / flt(row.qty), float_precision)
 			row.base_rate = flt(flt(row.base_amount) / flt(row.qty), float_precision)
-		if "purchase_rate" in current_cols:
-			row["purchase_rate"] = get_last_purchase_rate_custom(filters, row.item_code, row)
-			if not flt(row.get("purchase_rate")):
-				row["purchase_rate"] = row.get("buying_rate") or row.get("valuation_rate")
-		if "sales_rate" in current_cols:
-			row["sales_rate"] = flt(row.get("avg._selling_rate"))
-		if "profit_percentage" in current_cols:
-			row["profit_percentage"] = 0
-			if row.get("sales_rate") and row.get("purchase_rate"):
-				row["profit_percentage"] = 100-(flt(row.get("purchase_rate")/(flt(row.get("sales_rate"))/100)))
-		row["base_amount"] = (flt(row.get("sales_rate"))*flt(row.get("qty")))
-		if "profit_margin" in current_cols:
-			row["profit_margin"] = flt(row.get("base_amount")) - (flt(row.get("purchase_rate"))*flt(row.get("qty")))
-		if "gross_profit" in current_cols and "profit_percentage" in current_cols:
-			row["gross_profit"] = flt(row.get("base_amount")) * (flt(row.get("profit_percentage"))/100)
 		if row.indent == 0.0:
 			if count:
 				row.sales_rate = flt(sales_rate / count, float_precision)
@@ -284,9 +299,23 @@ def custom_process_grouped_invoiced_data(data, current_cols, filters):
 			qty = 0
 			count = 0
 		if row.indent == 1.0:
+			if "purchase_rate" in current_cols:
+				row["purchase_rate"] = get_last_purchase_rate_custom(filters, row.item_code, row)
+				if not flt(row.get("purchase_rate")):
+					row["purchase_rate"] = get_buying_item_price(row.item_code, {"date": row.posting_date})
+			if "sales_rate" in current_cols:
+				row["sales_rate"] = flt(row.get("avg._selling_rate"))
+			if "profit_percentage" in current_cols:
+				row["profit_percentage"] = 0
+				if row.get("sales_rate") and row.get("purchase_rate"):
+					row["profit_percentage"] = 100-(flt(row.get("purchase_rate")/(flt(row.get("sales_rate"))/100)))
+			row["base_amount"] = (flt(row.get("sales_rate"))*flt(row.get("qty")))
+			if "profit_margin" in current_cols:
+				row["profit_margin"] = flt(row.get("base_amount")) - (flt(row.get("purchase_rate"))*flt(row.get("qty")))
+			if "gross_profit" in current_cols and "profit_percentage" in current_cols:
+				row["gross_profit"] = flt(row.get("base_amount")) * (flt(row.get("profit_percentage"))/100)
 			buying_amount += flt(row.buying_amount)
 			base_amount += flt(row.base_amount)
-			profit_margin += flt(row.profit_margin)
 			profit_margin += flt(row.profit_margin)
 			sales_rate += flt(row.sales_rate)
 			purchase_rate += flt(row.purchase_rate)
