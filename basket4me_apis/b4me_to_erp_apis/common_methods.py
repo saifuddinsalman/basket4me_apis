@@ -41,11 +41,11 @@ def validate_customer(customer, transData={}, transType=None, transId=None):
         doc = frappe.new_doc("Customer")
         doc.customer_name = cstr(customer).strip()
         doc.custom_displayname = transData["custDisplayname"]
-        doc.custom_customer_category = transData["Bakery"]
-        doc.custom_route = transData["R111"]
-        doc.custom_route_sequence = transData["custSequence"]
-        doc.custom_pin_code_location = transData["custLocName"]
-        doc.custom_pincode = transData["custPinCode"]
+        doc.custom_customer_category = transData.get("Bakery")
+        doc.custom_route = transData.get("R111")
+        doc.custom_route_sequence = transData.get("custSequence")
+        doc.custom_pin_code_location = transData.get("custLocName")
+        doc.custom_pincode = transData.get("custPinCode")
         doc.flags.ignore_links=True
         doc.flags.ignore_mandatory=True
         doc.flags.ignore_permissions=True
